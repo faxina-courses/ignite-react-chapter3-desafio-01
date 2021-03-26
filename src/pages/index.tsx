@@ -27,7 +27,9 @@ interface HomeProps {
   postsPagination: PostPagination;
 }
 
-export default function Home() {
+export default function Home({
+  postsPagination: { results } = {} as PostPagination,
+}: HomeProps) {
   return (
     <>
       <Head>
@@ -36,78 +38,26 @@ export default function Home() {
       <div className={styles.container}>
         <img src="/Logo.svg" alt="logo" />
         <main className={styles.posts}>
-          <Link key="'" href="/">
-            <a>
-              <div className={styles.post}>
-                <h1>Como utilizar Hooks</h1>
-                <p>Pensando em sincronização em vez de ciclos de vida.</p>
-                <div className={styles.info}>
-                  <div className={styles.dateInfo}>
-                    <FiCalendar color="#bbbbbb" />
-                    <time>15 Mar 2021</time>
-                  </div>
-                  <div className={styles.userInfo}>
-                    <FiUser color="#bbbbbb" />
-                    <span>Joseph Oliveira</span>
-                  </div>
-                </div>
-              </div>
-            </a>
-          </Link>
-          <Link key="'" href="/">
-            <a>
-              <div className={styles.post}>
-                <h1>Como utilizar Hooks</h1>
-                <p>Pensando em sincronização em vez de ciclos de vida.</p>
-                <div className={styles.info}>
-                  <div className={styles.dateInfo}>
-                    <FiCalendar color="#bbbbbb" />
-                    <time>15 Mar 2021</time>
-                  </div>
-                  <div className={styles.userInfo}>
-                    <FiUser color="#bbbbbb" />
-                    <span>Joseph Oliveira</span>
+          {results?.map(post => (
+            <Link key={post.uid} href="/">
+              <a>
+                <div className={styles.post}>
+                  <h1>{post.data.title}</h1>
+                  <p>{post.data.subtitle}</p>
+                  <div className={styles.info}>
+                    <div className={styles.dateInfo}>
+                      <FiCalendar color="#bbbbbb" />
+                      <time>{post.first_publication_date}</time>
+                    </div>
+                    <div className={styles.userInfo}>
+                      <FiUser color="#bbbbbb" />
+                      <span>{post.data.author}</span>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </a>
-          </Link>
-          <Link key="'" href="/">
-            <a>
-              <div className={styles.post}>
-                <h1>Como utilizar Hooks</h1>
-                <p>Pensando em sincronização em vez de ciclos de vida.</p>
-                <div className={styles.info}>
-                  <div className={styles.dateInfo}>
-                    <FiCalendar color="#bbbbbb" />
-                    <time>15 Mar 2021</time>
-                  </div>
-                  <div className={styles.userInfo}>
-                    <FiUser color="#bbbbbb" />
-                    <span>Joseph Oliveira</span>
-                  </div>
-                </div>
-              </div>
-            </a>
-          </Link>
-          <Link key="'" href="/">
-            <a>
-              <div className={styles.post}>
-                <h1>Como utilizar Hooks</h1>
-                <p>Pensando em sincronização em vez de ciclos de vida.</p>
-                <div className={styles.info}>
-                  <div className={styles.dateInfo}>
-                    <FiCalendar color="#bbbbbb" />
-                    <time>15 Mar 2021</time>
-                  </div>
-                  <div className={styles.userInfo}>
-                    <FiUser color="#bbbbbb" />
-                    <span>Joseph Oliveira</span>
-                  </div>
-                </div>
-              </div>
-            </a>
-          </Link>
+              </a>
+            </Link>
+          ))}
         </main>
       </div>
     </>
