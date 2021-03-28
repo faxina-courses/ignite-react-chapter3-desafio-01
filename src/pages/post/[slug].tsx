@@ -3,6 +3,7 @@ import { useRouter } from 'next/router';
 import { FiCalendar, FiClock, FiUser } from 'react-icons/fi';
 import { RichText } from 'prismic-dom';
 import Prismic from '@prismicio/client';
+import { useMemo } from 'react';
 import Header from '../../components/Header';
 
 import { getPrismicClient } from '../../services/prismic';
@@ -31,17 +32,8 @@ interface PostProps {
   post: Post;
 }
 
-// export default function Post({
-//   post: {
-//     first_publication_date,
-//     data: { title, banner, author, content },
-//   },
-// }: PostProps) {
 export default function Post(props: PostProps) {
   const router = useRouter();
-  // console.log(props);
-  // eslint-disable-next-line react/destructuring-assignment
-  // console.log(props?.post);
 
   if (router.isFallback) {
     return <div>Carregando...</div>;
@@ -53,6 +45,19 @@ export default function Post(props: PostProps) {
       data: { title, banner, author, content },
     },
   } = props;
+
+  const timeToRead = useMemo(() => {
+    let count = 0;
+    content.map(cont => {
+      cont.body.map(elem => {
+        count += elem.text.split(' ').length;
+        return elem;
+      });
+      return cont;
+    });
+
+    return Math.ceil(count / 200);
+  }, [content]);
 
   return (
     <div className={styles.container}>
@@ -71,7 +76,7 @@ export default function Post(props: PostProps) {
           </div>
           <div className={styles.info}>
             <FiClock color="#BBBBBB" />
-            <time>4 min</time>
+            <time>{timeToRead} min</time>
           </div>
         </div>
 

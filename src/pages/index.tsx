@@ -100,7 +100,7 @@ export default function Home({
         <img src="/Logo.svg" alt="logo" />
         <main className={styles.posts}>
           {posts?.map(post => (
-            <Link key={post.uid} href="/">
+            <Link key={post.uid} href={`/post/${post.uid}`}>
               <a>
                 <div className={styles.post}>
                   <h1>{post.data.title}</h1>
