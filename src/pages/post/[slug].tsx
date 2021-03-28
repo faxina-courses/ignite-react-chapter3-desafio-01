@@ -1,15 +1,14 @@
 import { GetStaticPaths, GetStaticProps } from 'next';
 import { useRouter } from 'next/router';
 import { FiCalendar, FiClock, FiUser } from 'react-icons/fi';
-import { RichText } from 'prismic-dom';
 import Prismic from '@prismicio/client';
-import { useMemo } from 'react';
 import Header from '../../components/Header';
 
 import { getPrismicClient } from '../../services/prismic';
 
 import commonStyles from '../../styles/common.module.scss';
 import styles from './post.module.scss';
+import { formatDate } from '../../utils/date-format';
 
 interface Post {
   first_publication_date: string | null;
@@ -46,7 +45,7 @@ export default function Post(props: PostProps) {
     },
   } = props;
 
-  const timeToRead = useMemo(() => {
+  const timeToRead = () => {
     let count = 0;
     content.map(cont => {
       cont.body.map(elem => {
@@ -57,7 +56,7 @@ export default function Post(props: PostProps) {
     });
 
     return Math.ceil(count / 200);
-  }, [content]);
+  };
 
   return (
     <div className={styles.container}>
@@ -68,7 +67,7 @@ export default function Post(props: PostProps) {
         <div className={styles.infoContainer}>
           <div className={styles.info}>
             <FiCalendar color="#BBBBBB" />
-            <time>{first_publication_date}</time>
+            <time>{formatDate(first_publication_date)}</time>
           </div>
           <div className={styles.info}>
             <FiUser color="#BBBBBB" />
@@ -76,7 +75,7 @@ export default function Post(props: PostProps) {
           </div>
           <div className={styles.info}>
             <FiClock color="#BBBBBB" />
-            <time>{timeToRead} min</time>
+            <time>{timeToRead()} min</time>
           </div>
         </div>
 
@@ -123,37 +122,34 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
   const { slug } = params;
   const prismic = getPrismicClient();
   const response = await prismic.getByUID('posts', String(slug), {});
-  const { first_publication_date, data } = response;
+  const { first_publication_date, data, uid } = response;
 
   const newContent = (data?.content || []).map(elem => {
     const newBody = (elem?.body || []).map(body => ({
       text: body.text,
+      spans: body.spans,
+      type: body.type,
     }));
     return {
       heading: elem?.heading,
       body: newBody,
-      // body: RichText.asHtml(elem?.body),
     };
   });
 
   return {
     props: {
       post: {
-        first_publication_date: new Date(
-          first_publication_date
-        ).toLocaleDateString('pt-BR', {
-          day: '2-digit',
-          month: 'long',
-          year: 'numeric',
-        }),
+        first_publication_date,
         data: {
           title: data?.title,
+          subtitle: data?.subtitle,
           banner: {
             url: data?.banner?.url,
           },
           author: data.author,
           content: newContent,
         },
+        uid,
       },
     },
   };

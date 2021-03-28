@@ -10,6 +10,7 @@ import { getPrismicClient } from '../services/prismic';
 
 import commonStyles from '../styles/common.module.scss';
 import styles from './home.module.scss';
+import { formatDate } from '../utils/date-format';
 
 interface Post {
   uid?: string;
@@ -35,33 +36,13 @@ const formatPostsPagination = (postsResponse: ApiSearchResponse) => {
 
   const newResults = results.map(post => ({
     uid: post.uid,
-    first_publication_date: new Date(
-      post.first_publication_date
-    ).toLocaleDateString('pt-BR', {
-      day: '2-digit',
-      month: 'long',
-      year: 'numeric',
-    }),
+    first_publication_date: post.first_publication_date,
     data: post.data,
   }));
 
   return {
     results: newResults,
     next_page,
-  };
-};
-
-const formatPostsPaginationFront = (
-  postsResponse: ApiSearchResponse,
-  nextPage?: string
-) => {
-  const { next_page, results } = formatPostsPagination(postsResponse);
-
-  return {
-    next_page: next_page
-      ? `${next_page}&access_token=${nextPage?.split('access_token=')[1]}`
-      : null,
-    results,
   };
 };
 
@@ -78,12 +59,14 @@ export default function Home({
 
   const handleShowMorePostButton = async () => {
     try {
-      const response = await fetch(nextPage);
+      const response = await fetch(
+        `${nextPage}&access_token=${process.env.PRISMIC_ACCESS_TOKEN}`
+      );
       const data = await response.json();
       const {
         results: newPosts,
         next_page: newNextPage,
-      } = formatPostsPaginationFront(data, nextPage);
+      } = formatPostsPagination(data);
       setPosts([...posts, ...newPosts]);
       setNextPage(newNextPage);
     } catch (error) {
@@ -108,7 +91,7 @@ export default function Home({
                   <div className={styles.info}>
                     <div className={styles.dateInfo}>
                       <FiCalendar color="#bbbbbb" />
-                      <time>{post.first_publication_date}</time>
+                      <time>{formatDate(post.first_publication_date)}</time>
                     </div>
                     <div className={styles.userInfo}>
                       <FiUser color="#bbbbbb" />
@@ -134,15 +117,6 @@ export default function Home({
   );
 }
 
-const formatPostsPaginationServer = (postsResponse: ApiSearchResponse) => {
-  const { next_page, results } = formatPostsPagination(postsResponse);
-
-  return {
-    next_page: `${next_page}&access_token=${process.env.PRISMIC_ACCESS_TOKEN}`,
-    results,
-  };
-};
-
 export const getStaticProps: GetStaticProps = async () => {
   const prismic = getPrismicClient();
   const postsResponse = await prismic.query(
@@ -152,11 +126,10 @@ export const getStaticProps: GetStaticProps = async () => {
       pageSize: 1,
     }
   );
-  // console.log(JSON.stringify(postsResponse, null, 2));
 
   return {
     props: {
-      postsPagination: formatPostsPaginationServer(postsResponse),
+      postsPagination: formatPostsPagination(postsResponse),
     },
   };
 };
